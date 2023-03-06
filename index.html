@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+  <title>Chat GPT Simple</title>
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      min-height: 100%;
+      max-width: 720px;
+      margin: auto;
+      padding: 0 8px;
+      display: flex;
+      flex-flow: column;
+    }
+
+    #input {
+      width: 100%;
+      display: flex;
+      align-items: end;
+      border-radius: 8px;
+      border: crimson outset 1px;
+      margin-bottom: 5px;
+    }
+
+    #input:focus-within {
+      border-width: 2px;
+    }
+
+    #line {
+      flex: 1;
+      padding: 8px 0 8px 8px;
+      outline: medium;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+
+    input[type="submit"] {
+      padding: 4px 8px;
+      color: green;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    #box {
+      width: 100%;
+      flex: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal {
+      background: rgba(0, 0, 0, 0.30);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .model-body {
+      width: 100%;
+      max-width: 720px;
+      max-height: calc(100vh - 60px);
+      background-color: white;
+      border-radius: 20px;
+      padding: 20px 30px;
+      margin: 20px;
+      overflow: auto;
+    }
+
+    .model-body * {
+      width: calc(100% - 20px);
+    }
+
+    .model-body input,
+    .model-body textarea {
+      width: calc(100% - 20px);
+      padding: 10px;
+      font-size: 1.0rem;
+      border-radius: 4px;
+      background: none;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .model-body label {
+      display: block;
+      font-size: 1.2rem;
+      margin: 20px 0 5px 0;
+    }
+
+    .model-body button {
+      font-size: 1.1rem;
+      padding: 10px;
+    }
+
+    .system,
+    .assistant,
+    .user {
+      max-width: 80%;
+      width: fit-content;
+      padding: 12px 18px;
+      margin: 8px 0;
+      font-size: 1.1rem;
+      white-space: pre-wrap;
+    }
+
+    .system {
+      align-self: center;
+      color: #555;
+      font-size: 1.0rem;
+    }
+
+    .assistant {
+      background-color: bisque;
+      border-radius: 36px 8px 8px 0;
+    }
+
+    .user {
+      background-color: darkcyan;
+      color: aliceblue;
+      border-radius: 8px 36px 0 8px;
+      align-self: end;
+      margin-left: auto;
+    }
+
+    .history-item {
+      max-width: 100%;
+      width: 100%;
+      padding: 12px 18px;
+      font-size: 1.0rem;
+      cursor: pointer;
+    }
+
+    .history-item:nth-child(even) {
+      background-color: antiquewhite;
+    }
+
+    .history-item:nth-child(odd) {
+      background-color: aliceblue;
+    }
+  </style>
+</head>
+<div style="display: flex; align-items: center;">
+  <h2 style="display: inline-block;">Chat GPT Simple</h2>
+  <div style="flex: 1;"></div>
+  <input onclick="showHistory(true)" type="submit" title="History" value="🥑" />
+  <input onclick="showSettings(true)" type="submit" title="Setting" value="🍪" />
+</div>
+<div id="box"></div>
+<div id="input">
+  <div id="line" type="text" contenteditable="true"></div>
+  <input onclick="onSend()" type="submit" title="按 'ctrl+enter' 或 'alt+enter' 快捷键发送" value="▶" />
+</div>
+<div style="text-align: right; font-size: 90%; margin-bottom: 4px;">ctrl(alt)+enter</div>
+<div id="settingsModal" class="modal" style="display: none;">
+  <div id="settings" class="model-body">
+    <div style="display: flex; align-items: center;">
+      <h2 style="display: inline-block">Setting</h2>
+      <div style="flex: 1;"></div>
+      <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close" value="☕" />
+    </div>
+    <label>Domain</label>
+    <input type="text" id="domainInput" />
+    <label>API Key</label>
+    <input placeholder='OpenAI API Key' type="text" id="apiKeyInput" />
+    <label>Max tokens</label>
+    <input type="text" id="maxTokensInput" />
+    <label>What is your assistant</label>
+    <textarea id="systemPromptInput"></textarea>
+    <label style="display: flex; justify-items: center;">
+      gpt-3.5-turbo
+      <input id="isGpt3_5" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
+    </label>
+    <div style="display: flex; align-items: center;">
+      <button onclick="saveSettings()" style="margin-left: 20px;">Update</button>
+      <a href="https://github.com/excing/chatgpt" target="_blank"><svg
+          class="octicon octicon-mark-github v-align-middle" height="32" viewBox="0 0 16 16" version="1.1" width="32"
+          aria-hidden="true">
+          <path fill-rule="evenodd"
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+          </path>
+        </svg></a>
+    </div>
+  </div>
+</div>
+<div id="historyModal" class="modal" style="display: none;">
+  <div id="history" class="model-body">
+    <div style="display: flex; align-items: center;">
+      <h2 style="display: inline-block">History</h2>
+      <div style="flex: 1;"></div>
+      <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close" value="☕" />
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
+<script src="/app.js"></script>
