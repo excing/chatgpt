@@ -75,6 +75,7 @@ function completions() {
   })
 }
 function send(reqUrl, body, scussionCall) {
+  loader.hidden = false
   fetch(reqUrl, {
     method: "POST",
     headers: {
@@ -85,11 +86,13 @@ function send(reqUrl, body, scussionCall) {
   }).then((resp) => {
     return resp.json()
   }).then((data) => {
+    loader.hidden = true
     if (data.error) {
       throw new Error(`${data.error.code}: ${data.error.message}`)
     }
     scussionCall(data)
   }).catch((e) => {
+    loader.hidden = true
     addItem("system", `${e.message}`)
   })
 }

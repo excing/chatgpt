@@ -53,6 +53,27 @@
       cursor: pointer;
     }
 
+    /* CSS LOADER */
+    .loader {
+      border: 6px solid #efefef;
+      border-top: 6px solid #111;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+      margin: 4px auto;
+      width: 20px;
+      height: 20px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
     #box {
       width: 100%;
       flex: auto;
@@ -167,6 +188,7 @@
 <div id="box"></div>
 <div id="input">
   <div id="line" type="text" contenteditable="true"></div>
+  <div id="loader" class="loader" hidden></div>
   <input onclick="onSend()" type="submit" title="按 'ctrl+enter' 或 'alt+enter' 快捷键发送" value="▶" />
 </div>
 <div style="text-align: right; font-size: 90%; margin-bottom: 4px;">ctrl(alt)+enter</div>
@@ -175,7 +197,8 @@
     <div style="display: flex; align-items: center;">
       <h2 style="display: inline-block">Setting</h2>
       <div style="flex: 1;"></div>
-      <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close" value="☕" />
+      <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close"
+        value="☕" />
     </div>
     <label>Domain</label>
     <input type="text" id="domainInput" />
@@ -206,10 +229,20 @@
     <div style="display: flex; align-items: center;">
       <h2 style="display: inline-block">History</h2>
       <div style="flex: 1;"></div>
-      <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close" value="☕" />
+      <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close"
+        value="☕" />
     </div>
     <div id="historyList"></div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
 <script src="./app.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src='https://www.googletagmanager.com/gtag/js?id=G-RBJJWTTD37'></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+
+  gtag('config', 'G-RBJJWTTD37');
+</script>
