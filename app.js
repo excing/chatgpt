@@ -162,19 +162,28 @@ var config = {
   firstPrompt: null,
 }
 function saveSettings() {
-  config.domain = domainInput.value
-  config.apiKey = apiKeyInput.value
-  config.maxTokens = parseInt(maxTokensInput.value)
-  config.firstPrompt = { role: "system", content: systemPromptInput.value }
+  if (!apiKeyInput.value) {
+    alert('OpenAI API key can not empty')
+    return
+  }
+  config.domain = domainInput.value || config.domain
+  config.apiKey = apiKeyInput.value || config.apiKey
+  config.maxTokens = parseInt(maxTokensInput.value) || config.maxTokens
+  if (systemPromptInput.value) {
+    config.firstPrompt = { role: "system", content: systemPromptInput.value }
+  }
   messages[0] = config.firstPrompt
   localStorage.setItem("conversation_config", JSON.stringify(config))
   showSettings(false)
+  addItem('system', 'Update successed')
 }
 function init() {
   let configJson = localStorage.getItem("conversation_config")
   let _config = JSON.parse(configJson)
   if (_config) {
     config = _config
+  } else {
+    showSettings(true)
   }
   domainInput.placeholder = "https://api.openai.com"
   maxTokensInput.placeholder = config.maxTokens
