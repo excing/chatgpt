@@ -36,7 +36,7 @@ function addItem(type, content) {
 
 function postLine(line) {
   saveConv({ role: "user", content: line })
-  if (isGpt3_5.checked) {
+  if (config.isGpt3_5) {
     chat()
   } else {
     completions()
@@ -162,6 +162,7 @@ var config = {
   domain: "",
   apiKey: "",
   maxTokens: 500,
+  isGpt3_5: false,
   firstPrompt: null,
 }
 function saveSettings() {
@@ -172,6 +173,7 @@ function saveSettings() {
   config.domain = domainInput.value || config.domain
   config.apiKey = apiKeyInput.value || config.apiKey
   config.maxTokens = parseInt(maxTokensInput.value) || config.maxTokens
+  config.isGpt3_5 = isGpt3_5.checked || config.isGpt3_5
   if (systemPromptInput.value) {
     config.firstPrompt = { role: "system", content: systemPromptInput.value }
   }
@@ -204,6 +206,7 @@ function init() {
   } else {
     maxTokensInput.value = config.maxTokens
   }
+  isGpt3_5.checked = config.isGpt3_5
   if (!config.firstPrompt) {
     config.firstPrompt = { role: "system", content: systemPromptInput.placeholder }
   } else {
