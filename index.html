@@ -104,10 +104,6 @@
       overflow: auto;
     }
 
-    .model-body * {
-      width: calc(100% - 20px);
-    }
-
     .model-body input,
     .model-body textarea {
       width: calc(100% - 20px);
@@ -121,14 +117,17 @@
     }
 
     .model-body label {
-      display: block;
       font-size: 1.2rem;
+    }
+
+    .model-body label.label {
+      display: block;
       margin: 20px 0 5px 0;
     }
 
     .model-body button {
       font-size: 1.1rem;
-      padding: 10px;
+      padding: 10px 30px;
     }
 
     .system,
@@ -162,8 +161,8 @@
     }
 
     .history-item {
-      max-width: 100%;
-      width: 100%;
+      max-width: calc(100% - 20px);
+      width: calc(100% - 20px);
       padding: 12px 18px;
       font-size: 1.0rem;
       cursor: pointer;
@@ -200,21 +199,31 @@
       <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close"
         value="☕" />
     </div>
-    <label>Domain</label>
+    <label class="label">Domain</label>
     <input type="text" id="domainInput" />
-    <label>API Key</label>
+    <label class="label">API Key <span style="color: red">*</span></label>
     <input placeholder='OpenAI API Key' type="text" id="apiKeyInput" />
-    <label>Max tokens</label>
+    <label class="label">Max tokens</label>
     <input type="text" id="maxTokensInput" />
-    <label>What is your assistant</label>
+    <label class="label">What is your assistant</label>
     <textarea id="systemPromptInput"></textarea>
-    <label style="display: flex; justify-items: center;">
+    <label style="display: flex; align-items: center;">
+      Long conversation
+      <input id="multiConvInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
+    </label>
+    <details id="promptDetails" style="margin: 20px 0;">
+      <summary>Assistant Public Prompts</summary>
+      <div id="promptList"></div>
+    </details>
+    <label style="display: flex; align-items: center;">
       gpt-3.5-turbo
       <input id="isGpt3_5" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
     </label>
     <div style="display: flex; align-items: center; margin: 30px 0;">
+      <div style="flex: 1;"></div>
       <button onclick="saveSettings()">Update</button>
-      <a href="https://github.com/excing/chatgpt" target="_blank"><svg
+      <div style="flex: 1;"></div>
+      <a href="https://github.com/excing/chatgpt" target="_blank" style="padding: 10px 0;"><svg
           class="octicon octicon-mark-github v-align-middle" height="32" viewBox="0 0 16 16" version="1.1" width="32"
           aria-hidden="true">
           <path fill-rule="evenodd"

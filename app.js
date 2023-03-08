@@ -168,13 +168,15 @@ var config = {
   maxTokens: 500,
   isGpt3_5: true,
   firstPrompt: null,
+  multi: true,
+  prompts: [],
 }
 function saveSettings() {
   if (!apiKeyInput.value) {
     alert('OpenAI API key can not empty')
     return
   }
-  config.domain = domainInput.value || config.domain
+  config.domain = domainInput.value || config.placeholder
   config.apiKey = apiKeyInput.value || config.apiKey
   config.maxTokens = parseInt(maxTokensInput.value) || config.maxTokens
   config.isGpt3_5 = isGpt3_5.checked || config.isGpt3_5
@@ -182,10 +184,20 @@ function saveSettings() {
     config.firstPrompt = { role: "system", content: systemPromptInput.value }
   }
   messages[0] = config.firstPrompt
+  config.multi = multiConvInput.checked || config.multi
+  box.firstChild.innerHTML = config.firstPrompt.content
   localStorage.setItem("conversation_config", JSON.stringify(config))
   showSettings(false)
   addItem('system', 'Update successed')
 }
+
+function onSelectPrompt(index) {
+  let prompt = config.prompts[index]
+  systemPromptInput.value = prompt.content
+  multiConvInput.checked = prompt.multi
+  promptDetails.open = false
+}
+
 function init() {
   let configJson = localStorage.getItem("conversation_config")
   let _config = JSON.parse(configJson)
@@ -216,9 +228,36 @@ function init() {
   } else {
     systemPromptInput.value = config.firstPrompt.content
   }
+  multiConvInput.checked = config.multi
+
+  fetch("./prompts.json").then(resp => {
+    if (!resp.ok) {
+      throw new Error(resp.statusText)
+    }
+    return resp.json()
+  }).then(data => {
+    config.prompts = data
+    for (let index = 0; index < data.length; index++) {
+      const prompt = data[index];
+      promptList.innerHTML += promptDiv(index, prompt)
+    }
+  })
 
   reset()
 }
 
 window.scrollTo(0, document.body.clientHeight)
 init()
+
+const promptDiv = (index, prompt) => {
+  return `<div style="margin-top: 15px; cursor: pointer;" onclick="onSelectPrompt(${index})">
+<div style="display: flex;">
+  <strong style="flex: 1;">${prompt.title}</strong>
+  <label style="display:  ${prompt.multi ? "" : "none"}; align-items: center; margin: 0">
+    <span style="white-space: nowrap;">Long conversation</span>
+    <input type="checkbox" style="width: 1.1rem; height: 1.1rem;" checked disabled/>
+  </label>
+</div>
+<div style="margin-top: 2px;">${prompt.content}</div>
+</div>`
+}
