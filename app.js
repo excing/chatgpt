@@ -137,6 +137,10 @@ function switchConv(key) {
   convId = key.substring(convKey.length);
 }
 
+function deleteConv(key) {
+  localStorage.removeItem(key)
+}
+
 function showHistory(ok = true) {
   if (ok) {
     historyModal.style.display = ''
@@ -151,9 +155,13 @@ function showHistory(ok = true) {
       } catch (error) {
         continue
       }
-      historyList.innerHTML += `<div class="history-item" onclick='switchConv("${key}"); showHistory(false);'>
+      historyList.innerHTML += `<div class="history-item">
+        <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>
           <div>SYST: ${itemData[0].content}</div>
-          <div>USER: ${itemData[1].content} (${itemData.length}+)</div></div>`
+          <div>USER: ${itemData[1].content} (${itemData.length}+)</div>
+        </div>
+        <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
+</div>`
     }
     if (0 == localStorage.length) {
       historyList.innerHTML = `<h4>There are no past conversations yet.</h4>`
