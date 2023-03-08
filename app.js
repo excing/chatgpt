@@ -93,7 +93,11 @@ function send(reqUrl, body, scussionCall) {
     scussionCall(data)
   }).catch((e) => {
     loader.hidden = true
-    addItem("system", `${e.message}`)
+    if (e.message === 'Failed to fetch') {
+      addItem("system", `Unable to access OpenAI, please check your network.`)
+    } else {
+      addItem("system", `${e.message}`)
+    }
   })
 }
 
@@ -162,7 +166,7 @@ var config = {
   domain: "",
   apiKey: "",
   maxTokens: 500,
-  isGpt3_5: false,
+  isGpt3_5: true,
   firstPrompt: null,
 }
 function saveSettings() {
