@@ -10,6 +10,51 @@ window.addEventListener("keydown", (e) => {
   }
 }, { passive: false })
 
+const utf8Decoder = new TextDecoder('utf-8');
+const processText = function ({ done, value }, onMessage, onDone, onError) {
+  if (done) {
+    onDone()
+    return true
+  }
+  let chunk = utf8Decoder.decode(value)
+  let events = chunk.split("\n").filter(event => event.length > 7)
+  events.forEach(event => {
+    let line = event.substring(5).trim()
+    if (line === "[DONE]") {
+      onDone()
+      return true
+    }
+    let chat = null
+    try {
+      chat = JSON.parse(line)
+
+      if (chat) {
+        onMessage(chat)
+      }
+    } catch (error) {
+      console.log(line);
+      onError(error)
+    }
+  });
+  return false
+}
+
+async function sse(input, options) {
+  const { onMessage, onDone, onError, ...fetchOptions } = options
+  const response = await fetch(input, fetchOptions)
+  if (response.status !== 200) {
+    onError(await response.json())
+    return
+  }
+  const reader = response.body.getReader();
+  while (true) {
+    const data = await reader.read()
+    if (processText(data, onMessage, onDone, onError)) {
+      return
+    }
+  }
+}
+
 function onSend() {
   var value = (line.value || line.innerText).trim()
 
@@ -32,6 +77,8 @@ function addItem(type, content) {
     top: document.body.scrollHeight, behavior: "auto",
   })
   line.focus()
+
+  return request
 }
 
 function postLine(line) {
@@ -46,6 +93,7 @@ function postLine(line) {
 var convId;
 var messages = [];
 function chat() {
+  let assistantElem = addItem('assistant', '')
   let _message = messages
   if (!config.multi) {
     _message = [messages[0], messages[messages.length - 1]]
@@ -54,13 +102,17 @@ function chat() {
     "model": "gpt-3.5-turbo",
     "messages": _message,
     "max_tokens": config.maxTokens,
+    "stream": config.stream,
   }, (data) => {
-    let msg = data.choices[0].message
-    saveConv(msg)
-    addItem("assistant", msg.content)
+    let msg = data.choices[0].delta || data.choices[0].message || {}
+    assistantElem.innerText += msg.content || ""
+  }, () => {
+    let msg = assistantElem.innerText
+    saveConv({ role: "assistant", content: msg })
   })
 }
 function completions() {
+  let assistantElem = addItem('assistant', '')
   let _prompt = ""
   if (config.multi) {
     messages.forEach(msg => {
@@ -78,37 +130,59 @@ function completions() {
     "max_tokens": config.maxTokens,
     "temperature": 0,
     "stop": ["\nuser: ", "\nassistant: "],
+    "stream": config.stream,
   }, (data) => {
-    let msg = { role: "assistant", content: data.choices[0].text }
-    saveConv(msg)
-    addItem("assistant", msg.content)
+    assistantElem.innerText += data.choices[0].text
+  }, () => {
+    let msg = assistantElem.innerText
+    saveConv({ role: "assistant", content: msg })
   })
 }
-function send(reqUrl, body, scussionCall) {
+function send(reqUrl, body, onMessage, scussionCall) {
   loader.hidden = false
-  fetch(reqUrl, {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + config.apiKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  }).then((resp) => {
-    return resp.json()
-  }).then((data) => {
+  let onError = (error) => {
+    console.error(error);
     loader.hidden = true
-    if (data.error) {
-      throw new Error(`${data.error.code}: ${data.error.message}`)
-    }
-    scussionCall(data)
-  }).catch((e) => {
-    loader.hidden = true
-    if (e.message === 'Failed to fetch') {
+    if (error.message === 'Failed to fetch') {
       addItem("system", `Unable to access OpenAI, please check your network.`)
     } else {
-      addItem("system", `${e.message}`)
+      addItem("system", `${error.message}`)
     }
-  })
+  }
+  if (config.stream) {
+    sse(reqUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + config.apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      onMessage: onMessage,
+      onDone: () => {
+        loader.hidden = true
+        scussionCall()
+      },
+      onError: onError,
+    })
+  } else {
+    fetch(reqUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + config.apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }).then((resp) => {
+      return resp.json()
+    }).then((data) => {
+      loader.hidden = true
+      if (data.error) {
+        throw new Error(`${data.error.code}: ${data.error.message}`)
+      }
+      onMessage(data)
+      scussionCall()
+    }).catch(onError)
+  }
 }
 
 function reset() {
@@ -187,6 +261,7 @@ var config = {
   model: "",
   firstPrompt: null,
   multi: true,
+  stream: true,
   prompts: [],
 }
 function saveSettings() {
@@ -223,7 +298,10 @@ function init() {
   let configJson = localStorage.getItem("conversation_config")
   let _config = JSON.parse(configJson)
   if (_config) {
-    config = _config
+    let ck = Object.keys(config)
+    ck.forEach(key => {
+      config[key] = _config[key] || config[key]
+    });
   } else {
     showSettings(true)
   }
