@@ -12,46 +12,49 @@ window.addEventListener("keydown", (e) => {
 
 const utf8Decoder = new TextDecoder('utf-8');
 const processText = function ({ done, value }, onMessage, onDone, onError) {
-  if (done) {
-    onDone()
-    return true
-  }
-  let chunk = utf8Decoder.decode(value)
-  let events = chunk.split("\n").filter(event => event.length > 7)
-  events.forEach(event => {
-    let line = event.substring(5).trim()
-    if (line === "[DONE]") {
-      onDone()
-      return true
-    }
-    let chat = null
-    try {
-      chat = JSON.parse(line)
-
-      if (chat) {
-        onMessage(chat)
-      }
-    } catch (error) {
-      console.log(line);
-      onError(error)
-    }
-  });
   return false
 }
 
 async function sse(input, options) {
   const { onMessage, onDone, onError, ...fetchOptions } = options
-  const response = await fetch(input, fetchOptions)
+  try {
+    var response = await fetch(input, fetchOptions)
+  } catch (error) {
+    onError(error)
+    return
+  }
   if (response.status !== 200) {
     onError(await response.json())
     return
   }
   const reader = response.body.getReader();
+  var line = ''
   while (true) {
-    const data = await reader.read()
-    if (processText(data, onMessage, onDone, onError)) {
+    const { done, value } = await reader.read()
+    if (done) {
+      onDone()
       return
     }
+    let chunk = utf8Decoder.decode(value)
+    let events = chunk.split("\n").filter(event => event.length > 7)
+    events.forEach(event => {
+      line += event.substring(5).trim()
+      if (line === "[DONE]") {
+        onDone()
+        return
+      }
+      let chat = null
+      try {
+        chat = JSON.parse(line)
+
+        if (chat) {
+          line = ''
+          onMessage(chat)
+        }
+      } catch (error) {
+        console.log(line);
+      }
+    });
   }
 }
 
