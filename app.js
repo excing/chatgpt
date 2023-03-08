@@ -46,9 +46,13 @@ function postLine(line) {
 var convId;
 var messages = [];
 function chat() {
+  let _message = messages
+  if (!config.multi) {
+    _message = [messages[0], messages[messages.length - 1]]
+  }
   send(`${config.domain}/v1/chat/completions`, {
     "model": "gpt-3.5-turbo",
-    "messages": messages,
+    "messages": _message,
     "max_tokens": config.maxTokens,
   }, (data) => {
     let msg = data.choices[0].message
@@ -58,9 +62,15 @@ function chat() {
 }
 function completions() {
   let _prompt = ""
-  messages.forEach(msg => {
-    _prompt += `${msg.role}: ${msg.content}\n`
-  });
+  if (config.multi) {
+    messages.forEach(msg => {
+      _prompt += `${msg.role}: ${msg.content}\n`
+    });
+  } else {
+    _prompt += `${messages[0].role}: ${messages[0].content}\n`
+    let lastMessage = messages[messages.length - 1]
+    _prompt += `${lastMessage.role}: ${lastMessage.content}\n`
+  }
   _prompt += "assistant: "
   send(`${config.domain}/v1/completions`, {
     "model": "text-davinci-003",
@@ -176,15 +186,18 @@ function saveSettings() {
     alert('OpenAI API key can not empty')
     return
   }
-  config.domain = domainInput.value || config.placeholder
-  config.apiKey = apiKeyInput.value || config.apiKey
-  config.maxTokens = parseInt(maxTokensInput.value) || config.maxTokens
-  config.isGpt3_5 = isGpt3_5.checked || config.isGpt3_5
+  config.domain = domainInput.value || domainInput.placeholder
+  config.apiKey = apiKeyInput.value
+  config.maxTokens = parseInt(maxTokensInput.value || maxTokensInput.placeholder)
+  config.isGpt3_5 = isGpt3_5.checked
   if (systemPromptInput.value) {
-    config.firstPrompt = { role: "system", content: systemPromptInput.value }
+    config.firstPrompt = {
+      role: "system",
+      content: (systemPromptInput.value || systemPromptInput.placeholder)
+    }
   }
   messages[0] = config.firstPrompt
-  config.multi = multiConvInput.checked || config.multi
+  config.multi = multiConvInput.checked
   box.firstChild.innerHTML = config.firstPrompt.content
   localStorage.setItem("conversation_config", JSON.stringify(config))
   showSettings(false)
