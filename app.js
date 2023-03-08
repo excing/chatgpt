@@ -36,7 +36,7 @@ function addItem(type, content) {
 
 function postLine(line) {
   saveConv({ role: "user", content: line })
-  if (config.isGpt3_5) {
+  if (config.model === "gpt-3.5-turbo") {
     chat()
   } else {
     completions()
@@ -73,7 +73,7 @@ function completions() {
   }
   _prompt += "assistant: "
   send(`${config.domain}/v1/completions`, {
-    "model": "text-davinci-003",
+    "model": config.model,
     "prompt": _prompt,
     "max_tokens": config.maxTokens,
     "temperature": 0,
@@ -176,7 +176,7 @@ var config = {
   domain: "",
   apiKey: "",
   maxTokens: 500,
-  isGpt3_5: true,
+  model: "",
   firstPrompt: null,
   multi: true,
   prompts: [],
@@ -189,7 +189,7 @@ function saveSettings() {
   config.domain = domainInput.value || domainInput.placeholder
   config.apiKey = apiKeyInput.value
   config.maxTokens = parseInt(maxTokensInput.value || maxTokensInput.placeholder)
-  config.isGpt3_5 = isGpt3_5.checked
+  config.model = modelInput.value
   if (systemPromptInput.value) {
     config.firstPrompt = {
       role: "system",
@@ -235,7 +235,10 @@ function init() {
   } else {
     maxTokensInput.value = config.maxTokens
   }
-  isGpt3_5.checked = config.isGpt3_5
+  if (!config.model) {
+    config.model = "gpt-3.5-turbo"
+  }
+  modelInput.value = config.model
   if (!config.firstPrompt) {
     config.firstPrompt = { role: "system", content: systemPromptInput.placeholder }
   } else {
