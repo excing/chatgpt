@@ -1,11 +1,10 @@
-
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     showSettings(false)
     showHistory(false)
   }
   if ((e.ctrlKey || e.altKey)) {
-    console.log(e.key);
+    // console.log(e.key);
     switch (e.key) {
       case "i":
         e.preventDefault()
@@ -18,6 +17,11 @@ window.addEventListener("keydown", (e) => {
       case "h":
         e.preventDefault()
         showHistory(true)
+        break;
+      case ";":
+        e.preventDefault()
+        config.multi = !config.multi
+        addItem("system", "Long conversation checked: " + config.multi)
         break;
 
       default:
@@ -32,6 +36,17 @@ line.addEventListener("keydown", (e) => {
     onSend()
   }
 })
+
+line.addEventListener("paste", (e) => {
+  e.preventDefault()
+
+  let clipboardData = (e.clipboardData || window.clipboardData)
+  let paste = clipboardData.getData("text/plain")
+    .toString()
+    .replaceAll("\r\n", "\n")
+  line.focus()
+  document.execCommand("insertText", false, paste)
+}, { passive: false })
 
 function onSend() {
   var value = (line.value || line.innerText).trim()
@@ -150,7 +165,11 @@ function send(reqUrl, body, onMessage, scussionCall) {
         loader.hidden = true
         scussionCall()
       } else {
-        onMessage(JSON.parse(e.data))
+        try {
+          onMessage(JSON.parse(e.data))
+        } catch (error) {
+          onError(error)
+        }
       }
     });
 
@@ -244,9 +263,39 @@ function showHistory(ok = true) {
 function showSettings(ok = true) {
   if (ok) {
     settingsModal.style.display = ''
+    setSettingInput(config)
   } else {
     settingsModal.style.display = 'none'
   }
+}
+
+function setSettingInput(config) {
+  domainInput.placeholder = "https://api.openai.com"
+  maxTokensInput.placeholder = config.maxTokens
+  systemPromptInput.placeholder = "You are a helpful assistant."
+
+  apiKeyInput.value = config.apiKey
+
+  if (!config.domain) {
+    config.domain = domainInput.placeholder
+  } else {
+    domainInput.value = config.domain
+  }
+  if (!config.maxTokens) {
+    config.maxTokens = parseInt(maxTokensInput.placeholder)
+  } else {
+    maxTokensInput.value = config.maxTokens
+  }
+  if (!config.model) {
+    config.model = "gpt-3.5-turbo"
+  }
+  modelInput.value = config.model
+  if (!config.firstPrompt) {
+    config.firstPrompt = { role: "system", content: systemPromptInput.placeholder }
+  } else {
+    systemPromptInput.value = config.firstPrompt.content
+  }
+  multiConvInput.checked = config.multi
 }
 
 var config = {
@@ -297,35 +346,10 @@ function init() {
     ck.forEach(key => {
       config[key] = _config[key] || config[key]
     });
+    setSettingInput(config)
   } else {
     showSettings(true)
   }
-  domainInput.placeholder = "https://api.openai.com"
-  maxTokensInput.placeholder = config.maxTokens
-  systemPromptInput.placeholder = "You are a helpful assistant."
-
-  apiKeyInput.value = config.apiKey
-
-  if (!config.domain) {
-    config.domain = domainInput.placeholder
-  } else {
-    domainInput.value = config.domain
-  }
-  if (!config.maxTokens) {
-    config.maxTokens = parseInt(maxTokensInput.placeholder)
-  } else {
-    maxTokensInput.value = config.maxTokens
-  }
-  if (!config.model) {
-    config.model = "gpt-3.5-turbo"
-  }
-  modelInput.value = config.model
-  if (!config.firstPrompt) {
-    config.firstPrompt = { role: "system", content: systemPromptInput.placeholder }
-  } else {
-    systemPromptInput.value = config.firstPrompt.content
-  }
-  multiConvInput.checked = config.multi
 
   fetch("./prompts.json").then(resp => {
     if (!resp.ok) {

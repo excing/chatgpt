@@ -43,7 +43,8 @@
       word-break: break-word;
     }
 
-    input[type="submit"], button.icon {
+    input[type="submit"],
+    button.icon {
       padding: 4px 8px;
       color: green;
       border-radius: 8px;
@@ -217,7 +218,7 @@
     <input type="text" id="maxTokensInput" />
     <label class="label">What is your assistant</label>
     <textarea id="systemPromptInput"></textarea>
-    <label style="display: flex; align-items: center;">
+    <label style="display: flex; align-items: center;" title="In a thread, each session is a new session (ctrl + ;)">
       Long conversation
       <input id="multiConvInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
     </label>
