@@ -103,6 +103,7 @@ function chat(reqMsgs) {
     "messages": _message,
     "max_tokens": config.maxTokens,
     "stream": config.stream,
+    "temperature": config.temperature,
   }, (data) => {
     let msg = data.choices[0].delta || data.choices[0].message || {}
     assistantElem.className = 'assistant'
@@ -132,6 +133,7 @@ function completions(reqMsgs) {
     "temperature": 0,
     "stop": ["\nuser: ", "\nassistant: "],
     "stream": config.stream,
+    "temperature": config.temperature,
   }, (data) => {
     assistantElem.className = 'assistant'
     assistantElem.innerText += data.choices[0].text
@@ -280,6 +282,7 @@ function setSettingInput(config) {
   domainInput.placeholder = "https://api.openai.com"
   maxTokensInput.placeholder = config.maxTokens
   systemPromptInput.placeholder = "You are a helpful assistant."
+  temperatureInput.placeholder = config.temperature
 
   apiKeyInput.value = config.apiKey
 
@@ -292,6 +295,11 @@ function setSettingInput(config) {
     config.maxTokens = parseInt(maxTokensInput.placeholder)
   } else {
     maxTokensInput.value = config.maxTokens
+  }
+  if (!config.temperature) {
+    config.temperature = parseInt(temperatureInput.placeholder)
+  } else {
+    temperatureInput.value = config.temperature
   }
   if (!config.model) {
     config.model = "gpt-3.5-turbo"
@@ -314,6 +322,7 @@ var config = {
   multi: true,
   stream: true,
   prompts: [],
+  temperature: 0.5,
 }
 function saveSettings() {
   if (!apiKeyInput.value) {
@@ -323,6 +332,7 @@ function saveSettings() {
   config.domain = domainInput.value || domainInput.placeholder
   config.apiKey = apiKeyInput.value
   config.maxTokens = parseInt(maxTokensInput.value || maxTokensInput.placeholder)
+  config.temperature = parseInt(temperatureInput.value || temperatureInput.placeholder)
   config.model = modelInput.value
   if (systemPromptInput.value) {
     config.firstPrompt = {
