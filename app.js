@@ -1,59 +1,37 @@
 
 window.addEventListener("keydown", (e) => {
-  if (e.key == "Enter" && (e.ctrlKey || e.altKey)) {
-    e.preventDefault()
-    onSend()
-  }
   if (e.key === "Escape") {
     showSettings(false)
     showHistory(false)
   }
+  if ((e.ctrlKey || e.altKey)) {
+    console.log(e.key);
+    switch (e.key) {
+      case "i":
+        e.preventDefault()
+        reset()
+        break;
+      case ",":
+        e.preventDefault()
+        showSettings(true)
+        break;
+      case "h":
+        e.preventDefault()
+        showHistory(true)
+        break;
+
+      default:
+        break;
+    }
+  }
 }, { passive: false })
 
-const utf8Decoder = new TextDecoder('utf-8');
-
-async function sse(input, options) {
-  const { onMessage, onDone, onError, ...fetchOptions } = options
-  try {
-    var response = await fetch(input, fetchOptions)
-  } catch (error) {
-    onError(error)
-    return
+line.addEventListener("keydown", (e) => {
+  if (e.key == "Enter" && (e.ctrlKey || e.altKey)) {
+    e.preventDefault()
+    onSend()
   }
-  if (response.status !== 200) {
-    onError(await response.json())
-    return
-  }
-  const reader = response.body.getReader();
-  var line = ''
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) {
-      onDone()
-      return
-    }
-    let chunk = utf8Decoder.decode(value)
-    let events = chunk.split("\n").filter(event => event.length > 7)
-    events.forEach(event => {
-      line += event.substring(5).trim()
-      if (line === "[DONE]") {
-        onDone()
-        return
-      }
-      let chat = null
-      try {
-        chat = JSON.parse(line)
-
-        if (chat) {
-          line = ''
-          onMessage(chat)
-        }
-      } catch (error) {
-        console.log(line);
-      }
-    });
-  }
-}
+})
 
 function onSend() {
   var value = (line.value || line.innerText).trim()
@@ -93,7 +71,7 @@ function postLine(line) {
 var convId;
 var messages = [];
 function chat() {
-  let assistantElem = addItem('assistant', '')
+  let assistantElem = addItem('', '')
   let _message = messages
   if (!config.multi) {
     _message = [messages[0], messages[messages.length - 1]]
@@ -105,6 +83,7 @@ function chat() {
     "stream": config.stream,
   }, (data) => {
     let msg = data.choices[0].delta || data.choices[0].message || {}
+    assistantElem.className = 'assistant'
     assistantElem.innerText += msg.content || ""
   }, () => {
     let msg = assistantElem.innerText
@@ -112,7 +91,7 @@ function chat() {
   })
 }
 function completions() {
-  let assistantElem = addItem('assistant', '')
+  let assistantElem = addItem('', '')
   let _prompt = ""
   if (config.multi) {
     messages.forEach(msg => {
@@ -132,6 +111,7 @@ function completions() {
     "stop": ["\nuser: ", "\nassistant: "],
     "stream": config.stream,
   }, (data) => {
+    assistantElem.className = 'assistant'
     assistantElem.innerText += data.choices[0].text
   }, () => {
     let msg = assistantElem.innerText
@@ -140,30 +120,45 @@ function completions() {
 }
 function send(reqUrl, body, onMessage, scussionCall) {
   loader.hidden = false
-  let onError = (error) => {
-    console.error(error);
+  let onError = (data) => {
+    console.error(data);
     loader.hidden = true
-    if (error.message === 'Failed to fetch') {
+    if (!data) {
       addItem("system", `Unable to access OpenAI, please check your network.`)
     } else {
-      addItem("system", `${error.message}`)
+      try {
+        let openai = JSON.parse(data)
+        addItem("system", `${openai.error.message}`)
+      } catch (error) {
+        addItem("system", `${data}`)
+      }
     }
   }
   if (config.stream) {
-    sse(reqUrl, {
-      method: "POST",
+    var source = new SSE(
+      reqUrl, {
       headers: {
         "Authorization": "Bearer " + config.apiKey,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
-      onMessage: onMessage,
-      onDone: () => {
+      method: "POST",
+      payload: JSON.stringify(body),
+    });
+
+    source.addEventListener("message", function (e) {
+      if (e.data == "[DONE]") {
         loader.hidden = true
         scussionCall()
-      },
-      onError: onError,
-    })
+      } else {
+        onMessage(JSON.parse(e.data))
+      }
+    });
+
+    source.addEventListener("error", function (e) {
+      onError(e.data)
+    });
+
+    source.stream();
   } else {
     fetch(reqUrl, {
       method: "POST",

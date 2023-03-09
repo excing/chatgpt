@@ -182,9 +182,9 @@
 <div style="display: flex; align-items: center;">
   <h2 style="display: inline-block;">Chat GPT Simple</h2>
   <div style="flex: 1;"></div>
-  <input onclick="reset()" type="submit" title="New" value="🥚" />
-  <input onclick="showHistory(true)" type="submit" title="History" value="🥑" />
-  <input onclick="showSettings(true)" type="submit" title="Setting" value="🍪" />
+  <input onclick="reset()" type="submit" title="New (ctrl + i)" value="🥚" />
+  <input onclick="showHistory(true)" type="submit" title="History (ctrl + h)" value="🥑" />
+  <input onclick="showSettings(true)" type="submit" title="Setting (ctrl + ,)" value="🍪" />
 </div>
 <div id="box"></div>
 <div id="input">
@@ -198,7 +198,7 @@
     <div style="display: flex; align-items: center;">
       <h2 style="display: inline-block">Setting</h2>
       <div style="flex: 1;"></div>
-      <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close"
+      <input style="width: auto; font-size: 1.5rem;" onclick="showSettings(false)" type="submit" title="Close (Esc)"
         value="☕" />
     </div>
     <label class="label">Domain</label>
@@ -244,12 +244,13 @@
     <div style="display: flex; align-items: center;">
       <h2 style="display: inline-block">History</h2>
       <div style="flex: 1;"></div>
-      <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close"
+      <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close (Esc)"
         value="☕" />
     </div>
     <div id="historyList"></div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sse.js@0.6.1/lib/sse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"></script>
 <script src="./app.js"></script>
 <!-- Google tag (gtag.js) -->
