@@ -76,20 +76,27 @@ function addItem(type, content) {
 
 function postLine(line) {
   saveConv({ role: "user", content: line })
-  if (config.model === "gpt-3.5-turbo") {
-    chat()
+  let reqMsgs = []
+  if (messages.length < 10) {
+    reqMsgs.push(...messages)
   } else {
-    completions()
+    reqMsgs.push(messages[0])
+    reqMsgs.push(messages.slice(messages.length - 7, messages.length))
+  }
+  if (config.model === "gpt-3.5-turbo") {
+    chat(reqMsgs)
+  } else {
+    completions(reqMsgs)
   }
 }
 
 var convId;
 var messages = [];
-function chat() {
+function chat(reqMsgs) {
   let assistantElem = addItem('', '')
-  let _message = messages
+  let _message = reqMsgs
   if (!config.multi) {
-    _message = [messages[0], messages[messages.length - 1]]
+    _message = [reqMsgs[0], reqMsgs[reqMsgs.length - 1]]
   }
   send(`${config.domain}/v1/chat/completions`, {
     "model": "gpt-3.5-turbo",
@@ -105,16 +112,16 @@ function chat() {
     saveConv({ role: "assistant", content: msg })
   })
 }
-function completions() {
+function completions(reqMsgs) {
   let assistantElem = addItem('', '')
   let _prompt = ""
   if (config.multi) {
-    messages.forEach(msg => {
+    reqMsgs.forEach(msg => {
       _prompt += `${msg.role}: ${msg.content}\n`
     });
   } else {
-    _prompt += `${messages[0].role}: ${messages[0].content}\n`
-    let lastMessage = messages[messages.length - 1]
+    _prompt += `${reqMsgs[0].role}: ${reqMsgs[0].content}\n`
+    let lastMessage = reqMsgs[reqMsgs.length - 1]
     _prompt += `${lastMessage.role}: ${lastMessage.content}\n`
   }
   _prompt += "assistant: "
