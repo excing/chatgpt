@@ -81,7 +81,7 @@ function postLine(line) {
     reqMsgs.push(...messages)
   } else {
     reqMsgs.push(messages[0])
-    reqMsgs.push(messages.slice(messages.length - 7, messages.length))
+    reqMsgs.push(...messages.slice(messages.length - 7, messages.length))
   }
   if (config.model === "gpt-3.5-turbo") {
     chat(reqMsgs)
