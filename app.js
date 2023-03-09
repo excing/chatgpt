@@ -11,9 +11,6 @@ window.addEventListener("keydown", (e) => {
 }, { passive: false })
 
 const utf8Decoder = new TextDecoder('utf-8');
-const processText = function ({ done, value }, onMessage, onDone, onError) {
-  return false
-}
 
 async function sse(input, options) {
   const { onMessage, onDone, onError, ...fetchOptions } = options
