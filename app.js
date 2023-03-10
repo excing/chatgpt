@@ -377,6 +377,7 @@ function init() {
   } else {
     showSettings(true)
   }
+  recogLangInput.value = navigator.language
 
   fetch("./prompts.json").then(resp => {
     if (!resp.ok) {
@@ -476,7 +477,7 @@ const speechToText = () => {
   if (!recognition) {
     recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.lang = 'en-US';
+    recognition.lang = recogLangInput.value;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
