@@ -112,7 +112,7 @@ function chat(reqMsgs) {
     let msg = data.choices[0].delta || data.choices[0].message || {}
     assistantElem.className = 'assistant'
     assistantElem.innerText += msg.content || ""
-  }, () => onSuccessed(assistantElem), )
+  }, () => onSuccessed(assistantElem),)
 }
 function completions(reqMsgs) {
   let assistantElem = addItem('', '')
@@ -138,7 +138,7 @@ function completions(reqMsgs) {
   }, (data) => {
     assistantElem.className = 'assistant'
     assistantElem.innerText += data.choices[0].text
-  }, () => onSuccessed(assistantElem), )
+  }, () => onSuccessed(assistantElem),)
 }
 function onSuccessed(assistantElem) {
   let msg = assistantElem.innerText
@@ -442,7 +442,12 @@ const textToSpeech = async (text, options = {}) => {
 
   // Speak the text
   synth.speak(utterance);
-  loader.hidden = true
+  utterance.addEventListener('boundary', (event) => {
+    const { charIndex, elapsedTime } = event;
+    const progress = charIndex / utterance.text.length;
+    // console.log(`当前朗读进度：${progress * 100}%, 时间：${elapsedTime}`);
+    loader.hidden = true
+  });
 };
 
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
