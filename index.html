@@ -189,6 +189,7 @@
 </div>
 <div id="box"></div>
 <div id="input">
+  <input onclick="speechToText()" type="submit" title="Speech to text (ctrl + b)" value="🎄" />
   <div id="line" type="text" contenteditable="true"></div>
   <div id="loader" class="loader" hidden></div>
   <input onclick="onSend()" type="submit" title="按 'ctrl+enter' 或 'alt+enter' 快捷键发送" value="▶" />
@@ -218,6 +219,10 @@
     <input type="text" id="maxTokensInput" />
     <label class="label">Temperature</label>
     <input type="text" id="temperatureInput" />
+    <label class="label" style="display: flex; align-items: center;" title="Text to speech">
+      Text to speech
+      <input id="ttsInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
+    </label>
     <label class="label">What is your assistant</label>
     <textarea id="systemPromptInput"></textarea>
     <label style="display: flex; align-items: center;" title="In a thread, each session is a new session (ctrl + ;)">

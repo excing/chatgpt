@@ -23,6 +23,10 @@ window.addEventListener("keydown", (e) => {
         config.multi = !config.multi
         addItem("system", "Long conversation checked: " + config.multi)
         break;
+      case "b":
+        e.preventDefault()
+        speechToText()
+        break;
 
       default:
         break;
@@ -108,11 +112,7 @@ function chat(reqMsgs) {
     let msg = data.choices[0].delta || data.choices[0].message || {}
     assistantElem.className = 'assistant'
     assistantElem.innerText += msg.content || ""
-  }, () => {
-    let msg = assistantElem.innerText
-    saveConv({ role: "assistant", content: msg })
-    textToSpeech(msg)
-  })
+  }, () => onSuccessed(assistantElem), )
 }
 function completions(reqMsgs) {
   let assistantElem = addItem('', '')
@@ -138,10 +138,14 @@ function completions(reqMsgs) {
   }, (data) => {
     assistantElem.className = 'assistant'
     assistantElem.innerText += data.choices[0].text
-  }, () => {
-    let msg = assistantElem.innerText
-    saveConv({ role: "assistant", content: msg })
-  })
+  }, () => onSuccessed(assistantElem), )
+}
+function onSuccessed(assistantElem) {
+  let msg = assistantElem.innerText
+  saveConv({ role: "assistant", content: msg })
+  if (config.tts) {
+    textToSpeech(msg)
+  }
 }
 function send(reqUrl, body, onMessage, scussionCall) {
   loader.hidden = false
@@ -159,7 +163,8 @@ function send(reqUrl, body, onMessage, scussionCall) {
       }
     }
   }
-  if (config.stream) {
+  if (!config.tts) {
+    body.stream = true
     var source = new SSE(
       reqUrl, {
       headers: {
@@ -189,6 +194,7 @@ function send(reqUrl, body, onMessage, scussionCall) {
 
     source.stream();
   } else {
+    body.stream = false
     fetch(reqUrl, {
       method: "POST",
       headers: {
@@ -312,6 +318,7 @@ function setSettingInput(config) {
     systemPromptInput.value = config.firstPrompt.content
   }
   multiConvInput.checked = config.multi
+  ttsInput.checked = config.tts
 }
 
 var config = {
@@ -324,6 +331,7 @@ var config = {
   stream: true,
   prompts: [],
   temperature: 0.5,
+  tts: false,
 }
 function saveSettings() {
   if (!apiKeyInput.value) {
@@ -343,6 +351,7 @@ function saveSettings() {
   }
   messages[0] = config.firstPrompt
   config.multi = multiConvInput.checked
+  config.tts = ttsInput.checked
   box.firstChild.innerHTML = config.firstPrompt.content
   localStorage.setItem("conversation_config", JSON.stringify(config))
   showSettings(false)
@@ -402,10 +411,12 @@ const promptDiv = (index, prompt) => {
 }
 
 const textToSpeech = async (text, options = {}) => {
+  loader.hidden = false
   const synth = window.speechSynthesis;
 
   // Check if Web Speech API is available
   if (!('speechSynthesis' in window)) {
+    loader.hidden = true
     alert("Your web Speech API is not available");
     return;
   }
@@ -431,6 +442,7 @@ const textToSpeech = async (text, options = {}) => {
 
   // Speak the text
   synth.speak(utterance);
+  loader.hidden = true
 };
 
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
@@ -449,4 +461,30 @@ const getVoices = () => {
       resolve(voices);
     };
   });
+}
+
+const speechToText = () => {
+  loader.hidden = false
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    loader.hidden = true
+    try {
+      const speechResult = event.results[0][0].transcript;
+      line.innerText = speechResult;
+      onSend()
+    } catch (error) {
+      addItem('system', error.message)
+    }
+  };
+
+  recognition.onerror = (event) => {
+    loader.hidden = true
+    addItem('system', event.error)
+  };
 }
