@@ -402,19 +402,33 @@ const promptDiv = (index, prompt) => {
 }
 
 const synth = window.speechSynthesis;
-const textToSpeech = async (text, lang = 'zh-CN') => {
+const textToSpeech = async (text) => {
   if ('speechSynthesis' in window) {
+    const { franc } = await import("https://cdn.jsdelivr.net/npm/franc@6.1.0/+esm");
+
+    // Get text language
+    let lang = franc(text)
+    lang = lang === "cmn" ? 'zh-CN' : lang
     // Web Speech API 可用
     const utterance = new SpeechSynthesisUtterance(text);
     // utterance.lang = lang;
-    const voices = await getVoices();
-    const voice = voices.find(v => v.lang === lang);
+    const voices = synth.getVoices();
+    const voice = voices.find(v => langEq(v.lang, lang) && !v.localService);
     utterance.voice = voice;
     synth.speak(utterance);
   } else {
     // Web Speech API 不可用
     alert("Your web Speech can't use")
   }
+}
+
+const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
+const langEq = (lang1, lang2) => {
+  let langStr1 = regionNamesInEnglish.of(lang1)
+  let langStr2 = regionNamesInEnglish.of(lang2)
+  if (langStr1.indexOf(langStr2) !== -1) return true
+  if (langStr2.indexOf(langStr1) !== -1) return true
+  return langStr1 === langStr2
 }
 
 const getVoices = () => {
