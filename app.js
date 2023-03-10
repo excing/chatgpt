@@ -401,26 +401,37 @@ const promptDiv = (index, prompt) => {
 </div>`
 }
 
-const synth = window.speechSynthesis;
-const textToSpeech = async (text) => {
-  if ('speechSynthesis' in window) {
-    const { franc } = await import("https://cdn.jsdelivr.net/npm/franc@6.1.0/+esm");
+const textToSpeech = async (text, options = {}) => {
+  const synth = window.speechSynthesis;
 
-    // Get text language
-    let lang = franc(text)
-    lang = lang === "cmn" ? 'zh-CN' : lang
-    // Web Speech API 可用
-    const utterance = new SpeechSynthesisUtterance(text);
-    // utterance.lang = lang;
-    const voices = synth.getVoices();
-    const voice = voices.find(v => langEq(v.lang, lang) && !v.localService);
-    utterance.voice = voice;
-    synth.speak(utterance);
-  } else {
-    // Web Speech API 不可用
-    alert("Your web Speech can't use")
+  // Check if Web Speech API is available
+  if (!('speechSynthesis' in window)) {
+    alert("Your web Speech API is not available");
+    return;
   }
-}
+
+  // Detect language using franc library
+  const { franc } = await import("https://cdn.jsdelivr.net/npm/franc@6.1.0/+esm");
+  const lang = franc(text);
+
+  // Get available voices and find the one that matches the detected language
+  const voices = await new Promise(resolve => {
+    const voices = synth.getVoices();
+    resolve(voices);
+  });
+  const voice = voices.find(v =>
+    langEq(v.lang, lang === 'cmn' ? 'zh-CN' : lang) && !v.localService);
+
+  // Create a new SpeechSynthesisUtterance object and set its parameters
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.voice = voice;
+  utterance.rate = options.rate || 1.0;
+  utterance.pitch = options.pitch || 1.0;
+  utterance.volume = options.volume || 1.0;
+
+  // Speak the text
+  synth.speak(utterance);
+};
 
 const regionNamesInEnglish = new Intl.DisplayNames(['en'], { type: 'language' });
 const langEq = (lang1, lang2) => {
