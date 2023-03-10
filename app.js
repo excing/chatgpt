@@ -111,6 +111,7 @@ function chat(reqMsgs) {
   }, () => {
     let msg = assistantElem.innerText
     saveConv({ role: "assistant", content: msg })
+    textToSpeech(msg)
   })
 }
 function completions(reqMsgs) {
@@ -398,4 +399,29 @@ const promptDiv = (index, prompt) => {
 </div>
 <div style="margin-top: 2px;">${prompt.content}</div>
 </div>`
+}
+
+const synth = window.speechSynthesis;
+const textToSpeech = async (text, lang = 'zh-CN') => {
+  if ('speechSynthesis' in window) {
+    // Web Speech API 可用
+    const utterance = new SpeechSynthesisUtterance(text);
+    // utterance.lang = lang;
+    const voices = await getVoices();
+    const voice = voices.find(v => v.lang === lang);
+    utterance.voice = voice;
+    synth.speak(utterance);
+  } else {
+    // Web Speech API 不可用
+    alert("Your web Speech can't use")
+  }
+}
+
+const getVoices = () => {
+  return new Promise(resolve => {
+    synth.onvoiceschanged = () => {
+      const voices = synth.getVoices();
+      resolve(voices);
+    };
+  });
 }
