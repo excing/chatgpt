@@ -475,7 +475,8 @@ const speechToText = () => {
   // const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
   if (!recognition) {
     recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
