@@ -126,7 +126,7 @@
     }
 
     recognition.onerror = function (event) {
-      diagnostic.textContent = 'Error occurred in recognition: ' + event.error;
+      diagnostic.textContent = 'Error occurred in recognition: ' + event.error + ", " + event.message;
     }
   </script>
 </body>
