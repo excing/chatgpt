@@ -7,7 +7,11 @@ Build your own ChatGPT website.
 - 模型选择；
 - 可设置助手 `prompt`；
 - 预置多个 `prompt`；
-- 会话历史记录（本地存储）。
+- 会话历史记录（本地存储）；
+- 支持设置 `temperature` 参数；
+- 支持 `sse`，即 openai api 中的 `stream`；
+- 支持自动播放文本（TTS）；
+- 支持语音录入（ASR）。
 
 欢迎更多人来完善这个 [prompt list](https://github.com/excing/chatgpt/blob/main/prompts.json)。
 
