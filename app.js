@@ -470,12 +470,25 @@ const getVoices = () => {
 }
 
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
+var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
 var recognition = null;
 const speechToText = () => {
   loader.hidden = false
   // const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
   if (!recognition) {
     recognition = new SpeechRecognition();
+
+    var colors = ['aqua', 'azure', 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
+
+    if (SpeechGrammarList) {
+      // SpeechGrammarList is not currently available in Safari, and does not have any effect in any other browser.
+      // This code is provided as a demonstration of possible capability. You may choose not to use it.
+      var speechRecognitionList = new SpeechGrammarList();
+      var grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
+      speechRecognitionList.addFromString(grammar, 1);
+      recognition.grammars = speechRecognitionList;
+    }
     recognition.continuous = false;
     recognition.lang = recogLangInput.value;
     recognition.interimResults = false;
@@ -504,7 +517,7 @@ const speechToText = () => {
 
     recognition.onerror = (event) => {
       loader.hidden = true
-      addItem('system', `Speech recogniion error: ${event.error}`)
+      addItem('system', `Speech recogniion error: ${event.error}, ${error}`)
     };
   }
 
