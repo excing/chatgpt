@@ -468,34 +468,45 @@ const getVoices = () => {
   });
 }
 
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+var recognition = null;
 const speechToText = () => {
   loader.hidden = false
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
-  recognition.lang = 'zh-CN';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  // const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+  if (!recognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      loader.hidden = true
+      try {
+        const speechResult = event.results[0][0].transcript;
+        line.innerText = speechResult;
+        // onSend()
+      } catch (error) {
+        addItem('system', `Speech recogniion result failed: ${error.message}`)
+      }
+    };
+
+    recognition.onspeechend = function () {
+      loader.hidden = true
+      recognition.stop();
+    };
+
+    recognition.onnomatch = function (event) {
+      loader.hidden = true
+      addItem('system', `Speech recogniion match failed: ${event.error}`)
+    }
+
+    recognition.onerror = (event) => {
+      loader.hidden = true
+      addItem('system', `Speech recogniion error: ${event.error}`)
+    };
+  }
 
   recognition.start();
-
-  recognition.onresult = (event) => {
-    loader.hidden = true
-    try {
-      const speechResult = event.results[0][0].transcript;
-      line.innerText = speechResult;
-      onSend()
-    } catch (error) {
-      addItem('system', error.message)
-    }
-  };
-
-  recognition.onspeechend = function () {
-    recognition.stop();
-  };
-
-  recognition.onerror = (event) => {
-    loader.hidden = true
-    addItem('system', event.error)
-  };
 }
 
 // https://mdn.github.io/dom-examples/web-speech-api/speech-color-changer/
