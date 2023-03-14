@@ -219,6 +219,14 @@
     <input type="text" id="maxTokensInput" />
     <label class="label">Temperature</label>
     <input type="text" id="temperatureInput" />
+    <label class="label" style="display: flex; align-items: center;" title="Text to speech">
+      Text to speech
+      <input id="ttsInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
+    </label>
+    <label class="label" style="display: flex; align-items: center;" title="Only use whisper for speech recognition">
+      Only use Whisper
+      <input id="whisperInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
+    </label>
     <label class="label">Recognition language</span></label>
     <select id="recogLangInput" style="font-size: 1.1rem; padding: 3px">
       <option value="zh">中文</option>
@@ -229,10 +237,6 @@
       <option value="en-US">英文（美式）</option>
       <option value="en-UK">英文（英式）</option>
     </select>
-    <label class="label" style="display: flex; align-items: center;" title="Text to speech">
-      Text to speech
-      <input id="ttsInput" type="checkbox" style="width: 1.2rem; height: 1.2rem; margin-left: 10px;" />
-    </label>
     <label class="label">What is your assistant</label>
     <textarea id="systemPromptInput"></textarea>
     <label style="display: flex; align-items: center;" title="In a thread, each session is a new session (ctrl + ;)">

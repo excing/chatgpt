@@ -319,6 +319,7 @@ function setSettingInput(config) {
   }
   multiConvInput.checked = config.multi
   ttsInput.checked = config.tts
+  whisperInput.checked = config.onlyWhisper
 }
 
 var config = {
@@ -332,6 +333,7 @@ var config = {
   prompts: [],
   temperature: 0.5,
   tts: false,
+  onlyWhisper: false,
 }
 function saveSettings() {
   if (!apiKeyInput.value) {
@@ -352,6 +354,7 @@ function saveSettings() {
   messages[0] = config.firstPrompt
   config.multi = multiConvInput.checked
   config.tts = ttsInput.checked
+  config.onlyWhisper = whisperInput.checked
   box.firstChild.innerHTML = config.firstPrompt.content
   localStorage.setItem("conversation_config", JSON.stringify(config))
   showSettings(false)
@@ -645,24 +648,47 @@ const speechToText = () => {
       // 停止录音
       mediaRecorder.addEventListener('stop', function () {
         console.log("stop record");
-        addItem("system", `Stoped record: read ${chunks.length} "${mediaRecorder.mimeType}" blob, and start recognition`);
+        // 将录音数据合并为一个 Blob 对象
+        const blob = new Blob(chunks, { type: 'audio/mp3' });
+        // 创建一个 Audio 对象
+        const audio = new Audio();
+        // 将 Blob 对象转换为 URL
+        const url = URL.createObjectURL(blob);
+        // 设置 Audio 对象的 src 属性为 URL
+        audio.src = url;
+        // 播放录音
+        audio.play();
+        if (config.onlyWhisper) {
+          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
+        }
       });
-      asr(
-        onstop = () => {
+      if (config.onlyWhisper) {
+        detectStopRecording(stream, 0.38, () => {
           if (mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
           }
           stream.getTracks().forEach(track => track.stop());
-        },
-        onnomatch = () => {
-          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
-        },
-        onerror = () => {
-          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
         })
+      } else {
+        asr(
+          onstop = () => {
+            addItem("system", `Stoped record: read ${chunks.length} "${mediaRecorder.mimeType}" blob, and start recognition`);
+            if (mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+            }
+            stream.getTracks().forEach(track => track.stop());
+          },
+          onnomatch = () => {
+            transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
+          },
+          onerror = () => {
+            transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
+          })
+      }
     })
     .catch(function (error) {
       console.error(error);
+      addItem("system", error);
     });
 }
 
@@ -700,4 +726,31 @@ const asr = (onstop, onnomatch, onerror) => {
   } catch (error) {
     onerror()
   }
+}
+
+function detectStopRecording(stream, maxThreshold, callback) {
+  const audioContext = new AudioContext();
+  const sourceNode = audioContext.createMediaStreamSource(stream);
+  const analyzerNode = audioContext.createAnalyser();
+  analyzerNode.fftSize = 2048;
+  analyzerNode.smoothingTimeConstant = 0.8;
+  sourceNode.connect(analyzerNode);
+  const frequencyData = new Uint8Array(analyzerNode.frequencyBinCount);
+  var startTime = null;
+  const check = () => {
+    analyzerNode.getByteFrequencyData(frequencyData);
+    const amplitude = Math.max(...frequencyData) / 255;
+    console.log(`amplitude: ${amplitude}`);
+    if (amplitude >= maxThreshold) {
+      console.log("speeching");
+      startTime = new Date().getTime();
+      requestAnimationFrame(check);
+    } else if (startTime && (new Date().getTime() - startTime) > 1000) {
+      callback('stop');
+    } else {
+      console.log("no speech");
+      requestAnimationFrame(check);
+    }
+  };
+  requestAnimationFrame(check);
 }
