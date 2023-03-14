@@ -487,7 +487,7 @@ var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
 // var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
 // var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
 var recognition = null;
-const speechToText = () => {
+const _speechToText = () => {
   loader.hidden = false
   // const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
   if (!recognition) {
@@ -521,7 +521,7 @@ const speechToText = () => {
 
     recognition.onerror = (event) => {
       loader.hidden = true
-      addItem('system', `Speech recogniion error: ${event.error}, ${error}`)
+      addItem('system', `Speech recogniion error: ${event.error}, ${event}`)
     };
   }
 
@@ -529,5 +529,168 @@ const speechToText = () => {
     recognition.start();
   } catch (error) {
     onError(`Speech error: ${error}`)
+  }
+}
+
+function _speechToText1() {
+  loader.hidden = false
+  // 获取音频流
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function (stream) {
+      // 创建 MediaRecorder 对象
+      const mediaRecorder = new MediaRecorder(stream);
+      // 创建 AudioContext 对象
+      const audioContext = new AudioContext();
+      // 创建 MediaStreamAudioSourceNode 对象
+      const source = audioContext.createMediaStreamSource(stream);
+      // 创建 MediaStreamAudioDestinationNode 对象
+      const destination = audioContext.createMediaStreamDestination();
+      // 将 MediaStreamAudioDestinationNode 对象连接到 MediaStreamAudioSourceNode 对象
+      source.connect(destination);
+      // 将 MediaStreamAudioDestinationNode 对象的 MediaStream 传递给 MediaRecorder 对象
+      mediaRecorder.stream = destination.stream;
+      // 创建一个空的音频缓冲区
+      let chunks = [];
+      // 开始录音
+      mediaRecorder.start();
+      // 监听录音数据
+      mediaRecorder.addEventListener('dataavailable', function (event) {
+        chunks.push(event.data);
+      });
+      // 停止录音
+      mediaRecorder.addEventListener('stop', function () {
+        // 将录音数据合并为一个 Blob 对象
+        const blob = new Blob(chunks, { type: 'audio/mp3' });
+        // 创建一个 Audio 对象
+        const audio = new Audio();
+        // 将 Blob 对象转换为 URL
+        const url = URL.createObjectURL(blob);
+        // 设置 Audio 对象的 src 属性为 URL
+        audio.src = url;
+        // 播放录音
+        audio.play();
+        // asr
+        transcriptions(blob)
+      });
+      // 5 秒后停止录音
+      setTimeout(function () {
+        mediaRecorder.stop();
+        stream.getTracks().forEach(track => track.stop());
+      }, 5000);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+const transcriptions = (blob) => {
+  const formData = new FormData();
+  formData.append("model", "whisper-1");
+  formData.append("file", new File([blob], "input.mp3", { type: "audio/mp3" }));
+  formData.append("response_format", "json");
+  fetch("https://openai.icsq.xyz/v1/audio/transcriptions", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + config.apiKey,
+    },
+    body: formData,
+  }).then((resp) => {
+    return resp.json()
+  }).then((data) => {
+    loader.hidden = true
+    if (data.error) {
+      throw new Error(`${data.error.code}: ${data.error.message}`)
+    }
+    line.innerText = data.text
+    line.focus()
+  }).catch(e => {
+    loader.hidden = true
+    addItem("system", e)
+  })
+}
+
+const speechToText = () => {
+  loader.hidden = false
+  // 获取音频流
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(function (stream) {
+      // 创建 MediaRecorder 对象
+      const mediaRecorder = new MediaRecorder(stream);
+      // 创建 AudioContext 对象
+      const audioContext = new AudioContext();
+      // 创建 MediaStreamAudioSourceNode 对象
+      const source = audioContext.createMediaStreamSource(stream);
+      // 创建 MediaStreamAudioDestinationNode 对象
+      const destination = audioContext.createMediaStreamDestination();
+      // 将 MediaStreamAudioDestinationNode 对象连接到 MediaStreamAudioSourceNode 对象
+      source.connect(destination);
+      // 将 MediaStreamAudioDestinationNode 对象的 MediaStream 传递给 MediaRecorder 对象
+      mediaRecorder.stream = destination.stream;
+      // 创建一个空的音频缓冲区
+      let chunks = [];
+      // 开始录音
+      mediaRecorder.start();
+      // 监听录音数据
+      mediaRecorder.addEventListener('dataavailable', function (event) {
+        chunks.push(event.data);
+      });
+      // 停止录音
+      mediaRecorder.addEventListener('stop', function () {
+        console.log("stop record");
+      });
+      asr(
+        onstop = () => {
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+          stream.getTracks().forEach(track => track.stop());
+        },
+        onnomatch = () => {
+          const blob = new Blob(chunks, { type: 'audio/mp3' });
+          transcriptions(blob)
+        },
+        onerror = () => {
+          const blob = new Blob(chunks, { type: 'audio/mp3' });
+          transcriptions(blob)
+        })
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+const asr = (onstop, onnomatch, onerror) => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  const recognition = new SpeechRecognition()
+
+  recognition.continuous = false;
+  recognition.lang = recogLangInput.value;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    loader.hidden = true
+    try {
+      const speechResult = event.results[0][0].transcript;
+      line.innerText = speechResult;
+      // onSend()
+    } catch (error) {
+      addItem('system', `Speech recogniion result failed: ${error.message}`)
+    }
+  };
+
+  recognition.onspeechend = function () {
+    recognition.stop();
+    onstop();
+  };
+
+  recognition.onnomatch = onnomatch
+
+  recognition.onerror = onerror
+
+  try {
+    recognition.start();
+  } catch (error) {
+    onerror()
   }
 }
