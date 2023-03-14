@@ -570,7 +570,7 @@ function _speechToText1() {
         // 播放录音
         audio.play();
         // asr
-        transcriptions(blob)
+        transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
       });
       // 5 秒后停止录音
       setTimeout(function () {
@@ -583,10 +583,10 @@ function _speechToText1() {
     });
 }
 
-const transcriptions = (blob) => {
+const transcriptions = (file) => {
   const formData = new FormData();
   formData.append("model", "whisper-1");
-  formData.append("file", new File([blob], "input.mp3", { type: "audio/mp3" }));
+  formData.append("file", file);
   formData.append("response_format", "json");
   fetch("https://openai.icsq.xyz/v1/audio/transcriptions", {
     method: "POST",
@@ -607,6 +607,14 @@ const transcriptions = (blob) => {
     loader.hidden = true
     addItem("system", e)
   })
+}
+
+const getRecordFile = (chunks, mimeType) => {
+  const dataType = mimeType.split(';')[0];
+  const fileType = dataType.split('/')[1];
+  const blob = new Blob(chunks, { type: dataType });
+  const name = `input.${fileType}`
+  return new File([blob], name, { type: dataType })
 }
 
 const speechToText = () => {
@@ -637,6 +645,7 @@ const speechToText = () => {
       // 停止录音
       mediaRecorder.addEventListener('stop', function () {
         console.log("stop record");
+        addItem("system", `Stoped record: read ${chunks.length} "${mediaRecorder.mimeType}" blob, and start recognition`);
       });
       asr(
         onstop = () => {
@@ -646,12 +655,10 @@ const speechToText = () => {
           stream.getTracks().forEach(track => track.stop());
         },
         onnomatch = () => {
-          const blob = new Blob(chunks, { type: 'audio/mp3' });
-          transcriptions(blob)
+          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
         },
         onerror = () => {
-          const blob = new Blob(chunks, { type: 'audio/mp3' });
-          transcriptions(blob)
+          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
         })
     })
     .catch(function (error) {
