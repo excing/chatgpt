@@ -648,18 +648,20 @@ const speechToText = () => {
       // 停止录音
       mediaRecorder.addEventListener('stop', function () {
         console.log("stop record");
+        const audiofile = getRecordFile(chunks, mediaRecorder.mimeType)
         // 将录音数据合并为一个 Blob 对象
-        const blob = new Blob(chunks, { type: 'audio/mp3' });
+        // const blob = new Blob(chunks, { type: 'audio/mp3' });
         // 创建一个 Audio 对象
         const audio = new Audio();
         // 将 Blob 对象转换为 URL
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(audiofile);
         // 设置 Audio 对象的 src 属性为 URL
         audio.src = url;
         // 播放录音
         audio.play();
+        // 如果仅使用 Whisper 识别，则直接调用
         if (config.onlyWhisper) {
-          transcriptions(getRecordFile(chunks, mediaRecorder.mimeType))
+          transcriptions(audiofile)
         }
       });
       if (config.onlyWhisper) {
