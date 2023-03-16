@@ -1,0 +1,174 @@
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  max-width : 720px;
+  margin    : auto;
+  padding   : 0 8px;
+  display   : flex;
+  flex-flow : column;
+}
+
+#input {
+  width        : 100%;
+  display      : flex;
+  align-items  : end;
+  border-radius: 8px;
+  border       : crimson outset 1px;
+  margin-bottom: 5px;
+}
+
+#input:focus-within {
+  border-width: 2px;
+}
+
+#line {
+  flex         : 1;
+  padding      : 8px 0 8px 8px;
+  outline      : medium;
+  font-size    : 1.2rem;
+  border-radius: 8px;
+  border       : none;
+  background   : none;
+  white-space  : pre-wrap;
+  word-wrap    : break-word;
+  word-break   : break-word;
+}
+
+input[type="submit"],
+button.icon {
+  padding      : 4px 8px;
+  color        : green;
+  border-radius: 8px;
+  background   : none;
+  border       : none;
+  font-size    : 1.5rem;
+  cursor       : pointer;
+}
+
+/* CSS LOADER */
+.loader {
+  border       : 6px solid #efefef;
+  border-top   : 6px solid #111;
+  border-radius: 50%;
+  animation    : spin 1.2s linear infinite;
+  margin       : 4px auto;
+  width        : 20px;
+  height       : 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#box {
+  width         : 100%;
+  flex          : auto;
+  display       : flex;
+  flex-direction: column;
+}
+
+.modal {
+  background     : rgba(0, 0, 0, 0.30);
+  position       : absolute;
+  top            : 0;
+  left           : 0;
+  right          : 0;
+  bottom         : 0;
+  display        : flex;
+  justify-content: center;
+  align-items    : center;
+}
+
+.model-body {
+  width           : 100%;
+  max-width       : 720px;
+  max-height      : 85vh;
+  background-color: white;
+  border-radius   : 20px;
+  padding         : 20px 30px;
+  margin          : 20px;
+  overflow        : auto;
+}
+
+.model-body input,
+.model-body textarea {
+  width        : calc(100% - 20px);
+  padding      : 10px;
+  font-size    : 1.0rem;
+  border-radius: 4px;
+  background   : none;
+  white-space  : pre-wrap;
+  word-wrap    : break-word;
+  word-break   : break-word;
+}
+
+.model-body label {
+  font-size: 1.2rem;
+}
+
+.model-body label.label {
+  display: block;
+  margin : 20px 0 5px 0;
+}
+
+.model-body button {
+  font-size: 1.1rem;
+  padding  : 10px 30px;
+}
+
+.system,
+.assistant,
+.user {
+  max-width  : 80%;
+  width      : fit-content;
+  padding    : 12px 18px;
+  margin     : 8px 0;
+  font-size  : 1.1rem;
+  white-space: pre-wrap;
+}
+
+.system {
+  align-self: center;
+  color     : #555;
+  font-size : 1.0rem;
+}
+
+.assistant {
+  background-color: bisque;
+  border-radius   : 36px 8px 8px 0;
+}
+
+.user {
+  background-color: darkcyan;
+  color           : aliceblue;
+  border-radius   : 8px 36px 0 8px;
+  align-self      : end;
+  margin-left     : auto;
+}
+
+.history-item {
+  max-width  : calc(100% - 20px);
+  width      : calc(100% - 20px);
+  padding    : 12px 18px;
+  font-size  : 1.0rem;
+  cursor     : pointer;
+  display    : flex;
+  align-items: center;
+}
+
+.history-item:nth-child(even) {
+  background-color: antiquewhite;
+}
+
+.history-item:nth-child(odd) {
+  background-color: aliceblue;
+}
