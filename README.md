@@ -1,5 +1,7 @@
+[中文][README.md] | [English](README.en.md)
+
 # chatgpt
-Build your own ChatGPT website.
+构建你的 OpenAI ChatGPT Web 站点
 
 语音识别功能，默认使用本地语音识别模式，当本地语音识别失败，会自动使用 `OpenAI Whisper` 开始识别，也可以设置为 `仅使用 Wishper` 进行识别。
 
