@@ -22,7 +22,8 @@
 </div>
 <div style="text-align: right; font-size: 90%; margin-bottom: 4px;">
   <a href="#top">TOP</a>
-  ctrl(alt)+enter</div>
+  ctrl(alt)+enter
+</div>
 <div id="settingsModal" class="modal" style="display: none;">
   <div id="settings" class="model-body">
     <div style="display: flex; align-items: center;">
@@ -97,6 +98,8 @@
       <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close (Esc)"
         value="☕" />
     </div>
+    <input style="width: auto" onclick="deleteAllHistory()" type="submit" title="Delete all history"
+      value="Delete All" />
     <div id="historyList"></div>
   </div>
 </div>

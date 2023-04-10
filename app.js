@@ -245,6 +245,15 @@ function deleteConv(key) {
   localStorage.removeItem(key)
 }
 
+function deleteAllHistory() {
+  for (let index = 0; index < localStorage.length; index++) {
+    let key = localStorage.key(index);
+    if (key.substring(0, convKey.length) != convKey) { continue }
+    deleteConv(key)
+    showHistory(true)
+  }
+}
+
 function showHistory(ok = true) {
   if (ok) {
     historyModal.style.display = ''
