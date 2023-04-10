@@ -270,8 +270,8 @@ function showHistory(ok = true) {
       }
       historyList.innerHTML += `<div class="history-item">
         <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>
-          <div>SYST: ${itemData[0].content}</div>
-          <div>USER: ${itemData[1].content} (${itemData.length}+)</div>
+          <div>SYST: ${itemData[0].content.replace(/<[^>]+>/g, '')}</div>
+          <div>USER: ${itemData[1].content.replace(/<[^>]+>/g, '')} (${itemData.length}+)</div>
         </div>
         <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
 </div>`
