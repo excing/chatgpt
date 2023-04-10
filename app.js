@@ -261,6 +261,20 @@ function saveConvName(key) {
   showHistory(true)
 }
 
+function updateConvName(key) {
+  let name = document.getElementById(`name_${key}`)
+  let input = document.getElementById(`input_${key}`)
+  let update = document.getElementById(`update_${key}`)
+  let del = document.getElementById(`delete_${key}`)
+  input.hidden = false
+  name.hidden = true
+  del.hidden = true
+  update.innerHTML = "📝"
+  update.onclick = () => {
+    saveConvName(key)
+  }
+}
+
 function showHistory(ok = true) {
   if (ok) {
     historyModal.style.display = ''
@@ -279,8 +293,10 @@ function showHistory(ok = true) {
       if (itemName) {
         historyList.innerHTML += `<div class="history-item">
       <div style="display: flex; align-items: center;">
-        <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>${itemName}</div>
-        <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
+        <div id="name_${key}" style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>${itemName} (${itemData.length}+)</div>
+        <input id="input_${key}" type="text" placeholder="会话名称" hidden />
+        <button id="update_${key}" onclick='updateConvName("${key}");' class="icon" title="Save conversation name">🔧</button>
+        <button id="delete_${key}" onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
       </div></div>`
       } else {
         historyList.innerHTML += `<div class="history-item">
