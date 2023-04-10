@@ -223,6 +223,7 @@ function reset() {
 }
 
 const convKey = "conversations_"
+const convNameKey = "conversationName_"
 function saveConv(message) {
   messages.push(message)
   localStorage.setItem(`${convKey}${convId}`, JSON.stringify(messages))
@@ -254,6 +255,12 @@ function deleteAllHistory() {
   }
 }
 
+function saveConvName(key) {
+  let input = document.getElementById(`input_${key}`)
+  localStorage.setItem(`${convNameKey}${key}`, input.value)
+  showHistory(true)
+}
+
 function showHistory(ok = true) {
   if (ok) {
     historyModal.style.display = ''
@@ -268,13 +275,27 @@ function showHistory(ok = true) {
       } catch (error) {
         continue
       }
-      historyList.innerHTML += `<div class="history-item">
+      let itemName = localStorage.getItem(`${convNameKey}${key}`)
+      if (itemName) {
+        historyList.innerHTML += `<div class="history-item">
+      <div style="display: flex; align-items: center;">
+        <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>${itemName}</div>
+        <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
+      </div></div>`
+      } else {
+        historyList.innerHTML += `<div class="history-item">
+      <div style="display: flex; align-items: center; margin-bottom: 4px;">
+        <input id="input_${key}" type="text" placeholder="会话名称" />
+        <button onclick='saveConvName("${key}"); showHistory(true);' class="icon" title="Save conversation name">📝</button>
+      </div>
+      <div style="display: flex; align-items: center;">
         <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>
           <div>SYST: ${itemData[0].content.replace(/<[^>]+>/g, '')}</div>
           <div>USER: ${itemData[1].content.replace(/<[^>]+>/g, '')} (${itemData.length}+)</div>
         </div>
         <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
-</div>`
+      </div></div>`
+      }
     }
     if (0 == localStorage.length) {
       historyList.innerHTML = `<h4>There are no past conversations yet.</h4>`
