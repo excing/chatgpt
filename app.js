@@ -240,6 +240,8 @@ function switchConv(key) {
     addItem(msg.role, msg.content)
   });
   convId = key.substring(convKey.length);
+  systemPromptInput.value = messages[0].content;
+  saveSettings();
 }
 
 function deleteConv(key) {
