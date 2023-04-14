@@ -25,3 +25,5 @@
 ## 部署
 
 Fork 此项目，然后开启你的 GitHub Pages 即可。
+
+如果你的 OpenAI 不可访问，可以尝试使用这个方案：[使用 Cloudflare Workers 让 OpenAI API 绕过 GFW 且避免被封禁](https://github.com/noobnooc/noobnooc/discussions/9)
