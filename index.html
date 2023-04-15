@@ -3,6 +3,11 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+  <link rel="icon" type="image/x-icon" href="./icon-192x192.png">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Chat GPT Simple</title>
   <link rel="stylesheet" href="./main.css">
 </head>
@@ -20,7 +25,10 @@
   <div id="loader" class="loader" hidden></div>
   <input onclick="onSend()" type="submit" title="按 'ctrl+enter' 或 'alt+enter' 快捷键发送" value="▶" />
 </div>
-<div style="text-align: right; font-size: 90%; margin-bottom: 4px;">ctrl(alt)+enter</div>
+<div style="text-align: right; font-size: 90%; margin-bottom: 4px;">
+  <a href="#top">TOP</a>
+  ctrl(alt)+enter
+</div>
 <div id="settingsModal" class="modal" style="display: none;">
   <div id="settings" class="model-body">
     <div style="display: flex; align-items: center;">
@@ -95,6 +103,8 @@
       <input style="width: auto; font-size: 1.5rem;" onclick="showHistory(false)" type="submit" title="Close (Esc)"
         value="☕" />
     </div>
+    <input style="width: auto" onclick="deleteAllHistory()" type="submit" title="Delete all history"
+      value="Delete All" />
     <div id="historyList"></div>
   </div>
 </div>

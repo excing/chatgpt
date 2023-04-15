@@ -223,6 +223,7 @@ function reset() {
 }
 
 const convKey = "conversations_"
+const convNameKey = "conversationName_"
 function saveConv(message) {
   messages.push(message)
   localStorage.setItem(`${convKey}${convId}`, JSON.stringify(messages))
@@ -239,10 +240,41 @@ function switchConv(key) {
     addItem(msg.role, msg.content)
   });
   convId = key.substring(convKey.length);
+  systemPromptInput.value = messages[0].content;
+  saveSettings();
 }
 
 function deleteConv(key) {
   localStorage.removeItem(key)
+}
+
+function deleteAllHistory() {
+  for (let index = 0; index < localStorage.length; index++) {
+    let key = localStorage.key(index);
+    if (key.substring(0, convKey.length) != convKey) { continue }
+    deleteConv(key)
+    showHistory(true)
+  }
+}
+
+function saveConvName(key) {
+  let input = document.getElementById(`input_${key}`)
+  localStorage.setItem(`${convNameKey}${key}`, input.value)
+  showHistory(true)
+}
+
+function updateConvName(key) {
+  let name = document.getElementById(`name_${key}`)
+  let input = document.getElementById(`input_${key}`)
+  let update = document.getElementById(`update_${key}`)
+  let del = document.getElementById(`delete_${key}`)
+  input.hidden = false
+  name.hidden = true
+  del.hidden = true
+  update.innerHTML = "📝"
+  update.onclick = () => {
+    saveConvName(key)
+  }
 }
 
 function showHistory(ok = true) {
@@ -259,13 +291,29 @@ function showHistory(ok = true) {
       } catch (error) {
         continue
       }
-      historyList.innerHTML += `<div class="history-item">
+      let itemName = localStorage.getItem(`${convNameKey}${key}`)
+      if (itemName) {
+        historyList.innerHTML += `<div class="history-item">
+      <div style="display: flex; align-items: center;">
+        <div id="name_${key}" style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>${itemName} (${itemData.length}+)</div>
+        <input id="input_${key}" type="text" placeholder="会话名称" hidden />
+        <button id="update_${key}" onclick='updateConvName("${key}");' class="icon" title="Save conversation name">🔧</button>
+        <button id="delete_${key}" onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
+      </div></div>`
+      } else {
+        historyList.innerHTML += `<div class="history-item">
+      <div style="display: flex; align-items: center; margin-bottom: 4px;">
+        <input id="input_${key}" type="text" placeholder="会话名称" />
+        <button onclick='saveConvName("${key}"); showHistory(true);' class="icon" title="Save conversation name">📝</button>
+      </div>
+      <div style="display: flex; align-items: center;">
         <div style="flex: 1;" onclick='switchConv("${key}"); showHistory(false);'>
-          <div>SYST: ${itemData[0].content}</div>
-          <div>USER: ${itemData[1].content} (${itemData.length}+)</div>
+          <div>SYST: ${itemData[0].content.replace(/<[^>]+>/g, '')}</div>
+          <div>USER: ${itemData[1].content.replace(/<[^>]+>/g, '')} (${itemData.length}+)</div>
         </div>
         <button onclick='deleteConv("${key}"); showHistory(true);' class="icon" title="Delete">❌</button>
-</div>`
+      </div></div>`
+      }
     }
     if (0 == localStorage.length) {
       historyList.innerHTML = `<h4>There are no past conversations yet.</h4>`
@@ -755,4 +803,14 @@ function detectStopRecording(stream, maxThreshold, callback) {
     }
   };
   requestAnimationFrame(check);
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').then(function (registration) {
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }, function (err) {
+      console.error('ServiceWorker registration failed: ', err);
+    });
+  });
 }
