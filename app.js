@@ -591,7 +591,7 @@ const transcriptions = (file) => {
   formData.append("model", "whisper-1");
   formData.append("file", file);
   formData.append("response_format", "json");
-  fetch("https://openai.icsq.xyz/v1/audio/transcriptions", {
+  fetch(`${config.domain}/v1/audio/transcriptions`, {
     method: "POST",
     headers: {
       "Authorization": "Bearer " + config.apiKey,
